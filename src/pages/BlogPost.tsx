@@ -3,7 +3,8 @@ import { useBlog } from '@/hooks/use-blogs'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
-import { ArrowLeft, Calendar, Clock, User, Share } from 'lucide-react'
+import { Separator } from '@/components/ui/separator'
+import { ArrowLeft, Calendar, Clock, User, Share, BookOpen, Tag, Copy, Check } from 'lucide-react'
 import { format } from 'date-fns'
 import { motion } from 'framer-motion'
 import { Navigation } from '@/components/navigation'
@@ -11,11 +12,14 @@ import { Footer } from '@/components/footer'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import rehypeHighlight from 'rehype-highlight'
-import 'highlight.js/styles/github-dark.css'
+import { useState } from 'react'
+import { toast } from 'sonner'
+import 'highlight.js/styles/atom-one-dark.css'
 
 export default function BlogPost() {
   const { slug } = useParams<{ slug: string }>()
   const { data: blog, isLoading, error } = useBlog(slug!)
+  const [copiedText, setCopiedText] = useState('')
 
   const handleShare = async () => {
     if (navigator.share) {
@@ -26,13 +30,180 @@ export default function BlogPost() {
           url: window.location.href,
         })
       } catch (err) {
-        // Fallback to clipboard
         navigator.clipboard.writeText(window.location.href)
+        toast.success('Link copied to clipboard!')
       }
     } else {
-      // Fallback to clipboard
       navigator.clipboard.writeText(window.location.href)
+      toast.success('Link copied to clipboard!')
     }
+  }
+
+  const copyToClipboard = async (text: string) => {
+    try {
+      await navigator.clipboard.writeText(text)
+      setCopiedText(text)
+      setTimeout(() => setCopiedText(''), 2000)
+    } catch (err) {
+      console.error('Failed to copy text: ', err)
+    }
+  }
+
+  const readingTime = Math.ceil((blog?.content?.split(' ').length || 0) / 200)
+
+  // Custom components for markdown rendering
+  const components = {
+    h1: ({ children }: any) => (
+      <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-8 mt-12 first:mt-0 border-b border-border pb-4">
+        {children}
+      </h1>
+    ),
+    h2: ({ children }: any) => (
+      <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-6 mt-10">
+        {children}
+      </h2>
+    ),
+    h3: ({ children }: any) => (
+      <h3 className="text-xl md:text-2xl font-semibold text-foreground mb-4 mt-8">
+        {children}
+      </h3>
+    ),
+    h4: ({ children }: any) => (
+      <h4 className="text-lg md:text-xl font-semibold text-foreground mb-3 mt-6">
+        {children}
+      </h4>
+    ),
+    h5: ({ children }: any) => (
+      <h5 className="text-base md:text-lg font-semibold text-foreground mb-2 mt-4">
+        {children}
+      </h5>
+    ),
+    h6: ({ children }: any) => (
+      <h6 className="text-sm md:text-base font-semibold text-foreground mb-2 mt-4">
+        {children}
+      </h6>
+    ),
+    p: ({ children }: any) => (
+      <p className="text-muted-foreground leading-relaxed mb-6 text-base md:text-lg">
+        {children}
+      </p>
+    ),
+    a: ({ href, children }: any) => (
+      <a 
+        href={href} 
+        className="text-primary hover:text-primary/80 transition-colors underline decoration-primary/30 hover:decoration-primary/60 underline-offset-4"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        {children}
+      </a>
+    ),
+    strong: ({ children }: any) => (
+      <strong className="text-foreground font-bold">
+        {children}
+      </strong>
+    ),
+    em: ({ children }: any) => (
+      <em className="text-foreground/90 italic">
+        {children}
+      </em>
+    ),
+    code: ({ inline, children, className }: any) => {
+      const match = /language-(\w+)/.exec(className || '')
+      const language = match ? match[1] : ''
+      
+      if (inline) {
+        return (
+          <code className="text-primary bg-muted px-2 py-1 rounded text-sm font-mono border">
+            {children}
+          </code>
+        )
+      }
+
+      const codeString = String(children).replace(/\n$/, '')
+      
+      return (
+        <div className="relative group my-6">
+          <div className="flex items-center justify-between bg-muted/50 border border-border rounded-t-lg px-4 py-2">
+            <span className="text-sm font-medium text-muted-foreground">
+              {language || 'code'}
+            </span>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+              onClick={() => copyToClipboard(codeString)}
+            >
+              {copiedText === codeString ? (
+                <Check className="h-4 w-4 text-green-500" />
+              ) : (
+                <Copy className="h-4 w-4" />
+              )}
+            </Button>
+          </div>
+          <pre className="bg-card border border-t-0 border-border rounded-b-lg p-4 overflow-x-auto">
+            <code className="text-sm font-mono text-foreground">
+              {children}
+            </code>
+          </pre>
+        </div>
+      )
+    },
+    pre: ({ children }: any) => children, // Let the code component handle the pre styling
+    ul: ({ children }: any) => (
+      <ul className="text-muted-foreground list-disc list-inside mb-6 space-y-2 pl-4">
+        {children}
+      </ul>
+    ),
+    ol: ({ children }: any) => (
+      <ol className="text-muted-foreground list-decimal list-inside mb-6 space-y-2 pl-4">
+        {children}
+      </ol>
+    ),
+    li: ({ children }: any) => (
+      <li className="text-muted-foreground leading-relaxed">
+        {children}
+      </li>
+    ),
+    blockquote: ({ children }: any) => (
+      <blockquote className="border-l-4 border-primary pl-6 py-4 bg-muted/30 rounded-r-lg mb-6 relative">
+        <div className="absolute top-2 left-2 text-primary/20 text-4xl font-serif leading-none">"</div>
+        <div className="text-muted-foreground italic pl-6">
+          {children}
+        </div>
+      </blockquote>
+    ),
+    hr: () => (
+      <hr className="border-border my-8" />
+    ),
+    table: ({ children }: any) => (
+      <div className="overflow-x-auto mb-6 rounded-lg border border-border">
+        <table className="min-w-full">
+          {children}
+        </table>
+      </div>
+    ),
+    th: ({ children }: any) => (
+      <th className="border-b border-border bg-muted/50 px-6 py-3 text-foreground font-semibold text-left">
+        {children}
+      </th>
+    ),
+    td: ({ children }: any) => (
+      <td className="border-b border-border px-6 py-4 text-muted-foreground">
+        {children}
+      </td>
+    ),
+    img: ({ src, alt, ...props }: any) => (
+      <div className="my-8 rounded-xl overflow-hidden shadow-2xl">
+        <img 
+          src={src}
+          alt={alt}
+          {...props}
+          className="w-full h-auto object-cover"
+          loading="lazy"
+        />
+      </div>
+    ),
   }
 
   if (isLoading) {
@@ -40,16 +211,23 @@ export default function BlogPost() {
       <div className="min-h-screen bg-background">
         <Navigation />
         <main className="container mx-auto px-4 py-8">
-          <div className="max-w-4xl mx-auto">
-            <div className="animate-pulse space-y-6">
+          <div className="max-w-4xl mx-auto pt-24">
+            <div className="animate-pulse space-y-8">
               <div className="h-8 bg-muted rounded w-1/4"></div>
-              <div className="h-12 bg-muted rounded w-3/4"></div>
-              <div className="h-6 bg-muted rounded w-1/2"></div>
-              <div className="h-64 bg-muted rounded"></div>
+              <div className="space-y-4">
+                <div className="h-12 bg-muted rounded w-3/4"></div>
+                <div className="h-6 bg-muted rounded w-1/2"></div>
+                <div className="flex gap-2">
+                  <div className="h-6 bg-muted rounded w-16"></div>
+                  <div className="h-6 bg-muted rounded w-20"></div>
+                </div>
+              </div>
+              <div className="h-72 bg-muted rounded"></div>
               <div className="space-y-4">
                 <div className="h-4 bg-muted rounded"></div>
                 <div className="h-4 bg-muted rounded w-5/6"></div>
                 <div className="h-4 bg-muted rounded w-4/6"></div>
+                <div className="h-4 bg-muted rounded w-3/4"></div>
               </div>
             </div>
           </div>
@@ -64,14 +242,20 @@ export default function BlogPost() {
       <div className="min-h-screen bg-background">
         <Navigation />
         <main className="container mx-auto px-4 py-8">
-          <div className="max-w-4xl mx-auto text-center">
-            <h1 className="text-4xl font-bold mb-4">Post Not Found</h1>
-            <p className="text-muted-foreground mb-8">
-              The blog post you're looking for doesn't exist or has been removed.
-            </p>
-            <Button asChild>
-              <Link to="/blog">Back to Blog</Link>
-            </Button>
+          <div className="max-w-4xl mx-auto text-center py-16 pt-24">
+            <div className="space-y-6">
+              <div className="text-6xl">📝</div>
+              <h1 className="text-4xl font-bold">Post Not Found</h1>
+              <p className="text-xl text-muted-foreground max-w-md mx-auto">
+                The blog post you're looking for doesn't exist or has been removed.
+              </p>
+              <Button asChild size="lg">
+                <Link to="/blog">
+                  <ArrowLeft className="mr-2 h-4 w-4" />
+                  Back to Blog
+                </Link>
+              </Button>
+            </div>
           </div>
         </main>
         <Footer />
@@ -79,207 +263,196 @@ export default function BlogPost() {
     )
   }
 
-  // SEO meta tags (in a real app, you'd use React Helmet or similar)
-  const seoTitle = `${blog.title} | Kavinda Dewmith`
-  const seoDescription = blog.excerpt || `Read ${blog.title} by Kavinda Dewmith`
-
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
       
-      <motion.main 
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        className="container mx-auto px-4 py-8"
-      >
-        <div className="max-w-4xl mx-auto">
-          {/* Back Button */}
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            className="mb-8"
-          >
-            <Button variant="ghost" asChild>
-              <Link to="/blog">
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                Back to Blog
-              </Link>
-            </Button>
-          </motion.div>
+      <div className="container mx-auto px-4 pt-24 py-16 max-w-4xl">
+        {/* Back to Blog */}
+        <motion.div
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          className="mb-8"
+        >
+          <Button variant="ghost" asChild className="text-primary hover:text-primary/80 hover:bg-primary/10">
+            <Link to="/blog">
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back to Blog
+            </Link>
+          </Button>
+        </motion.div>
 
-          {/* Article Header */}
-          <motion.article
+        {/* Article Header */}
+        <motion.header
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="mb-12"
+        >
+          <h1 className="text-3xl md:text-5xl font-bold text-foreground mb-6 leading-tight">
+            {blog.title}
+          </h1>
+          
+          {/* Article Meta */}
+          <div className="flex flex-wrap items-center gap-6 text-muted-foreground mb-6">
+            {blog.author && (
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-gradient-to-br from-primary to-secondary rounded-full flex items-center justify-center text-white font-semibold">
+                  {blog.author.name.charAt(0)}
+                </div>
+                <div className="flex items-center gap-2">
+                  <User className="h-4 w-4" />
+                  <span className="font-medium">{blog.author.name}</span>
+                </div>
+              </div>
+            )}
+            
+            <Separator orientation="vertical" className="h-6" />
+            
+            <div className="flex items-center gap-2">
+              <Calendar className="h-4 w-4" />
+              <span>
+                {format(new Date(blog.published_at || blog.created_at), 'MMMM d, yyyy')}
+              </span>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <Clock className="h-4 w-4" />
+              <span>{readingTime} min read</span>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <BookOpen className="h-4 w-4" />
+              <span>{blog.content.split(' ').length} words</span>
+            </div>
+
+            <div className="ml-auto">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleShare}
+                className="hover:bg-primary hover:text-primary-foreground transition-colors"
+              >
+                <Share className="h-4 w-4 mr-2" />
+                Share
+              </Button>
+            </div>
+          </div>
+
+          {/* Tags */}
+          {blog.tags && blog.tags.length > 0 && (
+            <div className="flex flex-wrap gap-2">
+              {blog.tags.map((tag) => (
+                <Badge
+                  key={tag.id}
+                  variant="secondary"
+                  className="bg-primary/10 text-primary hover:bg-primary/20 transition-colors border border-primary/20"
+                >
+                  <Tag className="mr-1 h-3 w-3" />
+                  {tag.name}
+                </Badge>
+              ))}
+            </div>
+          )}
+
+          {/* Excerpt */}
+          {blog.excerpt && (
+            <motion.p 
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+              className="text-xl text-muted-foreground leading-relaxed mt-6 font-medium"
+            >
+              {blog.excerpt}
+            </motion.p>
+          )}
+        </motion.header>
+
+        {/* Cover Image */}
+        {blog.cover_image_url && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.3 }}
+            className="mb-12"
+          >
+            <div className="relative rounded-xl overflow-hidden shadow-2xl">
+              <img
+                src={blog.cover_image_url}
+                alt={blog.title}
+                className="w-full h-64 md:h-96 object-cover"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
+            </div>
+          </motion.div>
+        )}
+
+        {/* Article Content */}
+        <motion.article
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4 }}
+          className="prose prose-lg dark:prose-invert max-w-none"
+        >
+          <ReactMarkdown
+            components={components}
+            remarkPlugins={[remarkGfm]}
+            rehypePlugins={[rehypeHighlight]}
+          >
+            {blog.content || ''}
+          </ReactMarkdown>
+        </motion.article>
+
+        {/* Author Bio */}
+        {blog.author && blog.author.bio && (
+          <motion.footer
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
+            transition={{ delay: 0.5 }}
+            className="mt-16 pt-8"
           >
-            <header className="mb-8">
-              {/* Title */}
-              <h1 className="text-4xl md:text-5xl font-bold mb-6 leading-tight">
-                {blog.title}
-              </h1>
-
-              {/* Meta Information */}
-              <div className="flex flex-wrap items-center gap-6 text-sm text-muted-foreground mb-6">
-                {blog.author && (
-                  <div className="flex items-center gap-2">
-                    <User className="h-4 w-4" />
-                    <span>{blog.author.name}</span>
+            <Separator className="mb-8" />
+            <Card className="border-2 border-border hover:shadow-lg transition-shadow bg-muted/30">
+              <CardContent className="p-8">
+                <div className="flex items-start gap-6">
+                  <div className="w-20 h-20 bg-gradient-to-br from-primary to-secondary rounded-full flex items-center justify-center text-white font-bold text-2xl shrink-0">
+                    {blog.author.name.charAt(0)}
                   </div>
-                )}
-                
-                <div className="flex items-center gap-2">
-                  <Calendar className="h-4 w-4" />
-                  <span>
-                    {format(new Date(blog.published_at || blog.created_at), 'MMMM d, yyyy')}
-                  </span>
+                  <div className="space-y-3">
+                    <h3 className="font-bold text-xl text-foreground">
+                      About {blog.author.name}
+                    </h3>
+                    <p className="text-muted-foreground leading-relaxed">
+                      {blog.author.bio}
+                    </p>
+                  </div>
                 </div>
+              </CardContent>
+            </Card>
+          </motion.footer>
+        )}
 
-                <div className="flex items-center gap-2">
-                  <Clock className="h-4 w-4" />
-                  <span>{Math.ceil(blog.content.split(' ').length / 200)} min read</span>
-                </div>
-
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleShare}
-                  className="ml-auto"
-                >
-                  <Share className="h-4 w-4 mr-2" />
-                  Share
-                </Button>
-              </div>
-
-              {/* Tags */}
-              {blog.tags && blog.tags.length > 0 && (
-                <div className="flex flex-wrap gap-2 mb-6">
-                  {blog.tags.map((tag) => (
-                    <Badge key={tag.id} variant="secondary">
-                      {tag.name}
-                    </Badge>
-                  ))}
-                </div>
-              )}
-
-              {/* Cover Image */}
-              {blog.cover_image_url && (
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: 0.2 }}
-                  className="mb-8"
-                >
-                  <img
-                    src={blog.cover_image_url}
-                    alt={blog.title}
-                    className="w-full h-64 md:h-96 object-cover rounded-lg shadow-lg"
-                  />
-                </motion.div>
-              )}
-
-              {/* Excerpt */}
-              {blog.excerpt && (
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.3 }}
-                >
-                  <Card className="mb-8">
-                    <CardContent className="p-6">
-                      <p className="text-lg text-muted-foreground italic">
-                        {blog.excerpt}
-                      </p>
-                    </CardContent>
-                  </Card>
-                </motion.div>
-              )}
-            </header>
-
-            {/* Article Content */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.4 }}
-              className="prose prose-lg dark:prose-invert max-w-none"
-            >
-              <ReactMarkdown
-                remarkPlugins={[remarkGfm]}
-                rehypePlugins={[rehypeHighlight]}
-                components={{
-                  img: ({ node, ...props }) => (
-                    <img 
-                      {...props} 
-                      className="rounded-lg shadow-md my-8 w-full"
-                      loading="lazy"
-                    />
-                  ),
-                  blockquote: ({ node, ...props }) => (
-                    <blockquote 
-                      {...props} 
-                      className="border-l-4 border-primary pl-6 my-6 italic text-muted-foreground"
-                    />
-                  ),
-                  code: ({ node, ...props }) => {
-                    const { children, className } = props as any
-                    const match = /language-(\w+)/.exec(className || '')
-                    return match ? (
-                      <code {...props} />
-                    ) : (
-                      <code {...props} className="bg-muted px-1 py-0.5 rounded text-sm" />
-                    )
-                  }
-                }}
-              >
-                {blog.content}
-              </ReactMarkdown>
-            </motion.div>
-
-            {/* Author Bio */}
-            {blog.author && blog.author.bio && (
-              <motion.footer
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.5 }}
-                className="mt-12 pt-8 border-t"
-              >
-                <Card>
-                  <CardContent className="p-6">
-                    <div className="flex items-start gap-4">
-                      <div className="w-16 h-16 bg-gradient-to-br from-primary to-secondary rounded-full flex items-center justify-center text-white font-semibold text-xl">
-                        {blog.author.name.charAt(0)}
-                      </div>
-                      <div>
-                        <h3 className="font-semibold text-lg mb-2">
-                          About {blog.author.name}
-                        </h3>
-                        <p className="text-muted-foreground">
-                          {blog.author.bio}
-                        </p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </motion.footer>
-            )}
-
-            {/* Navigation */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.6 }}
-              className="mt-12 flex justify-center"
-            >
-              <Button asChild size="lg">
-                <Link to="/blog">
-                  <ArrowLeft className="mr-2 h-4 w-4" />
-                  Back to All Posts
-                </Link>
-              </Button>
-            </motion.div>
-          </motion.article>
-        </div>
-      </motion.main>
+        {/* Article Footer */}
+        <motion.footer
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.6 }}
+          className="mt-16 pt-8 border-t border-border"
+        >
+          <div className="flex items-center justify-between">
+            <Button variant="ghost" asChild className="text-primary hover:text-primary/80 hover:bg-primary/10">
+              <Link to="/blog">
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Back to all posts
+              </Link>
+            </Button>
+            
+            <div className="text-sm text-muted-foreground">
+              Published on {format(new Date(blog.published_at || blog.created_at), 'MMMM d, yyyy')}
+            </div>
+          </div>
+        </motion.footer>
+      </div>
 
       <Footer />
     </div>

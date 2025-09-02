@@ -24,7 +24,7 @@ export default function BlogList() {
     <div className="min-h-screen bg-background">
       <Navigation />
       
-      <main className="container mx-auto px-4 py-8">
+      <main className="container mx-auto px-4 py-8 pt-16 md:pt-24">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
