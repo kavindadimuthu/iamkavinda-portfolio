@@ -38,7 +38,7 @@ export default function AdminDashboard() {
 
   return (
     <AdminLayout>
-      <div className="space-y-6">
+      <div className="space-y-6 py-8 px-8">
         {/* Header */}
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
