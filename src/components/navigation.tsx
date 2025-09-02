@@ -75,12 +75,25 @@ export function Navigation() {
 				<div className="flex items-center justify-between h-16">
 					{/* Logo */}
 					<div className="flex-shrink-0">
-						<Link
+						{/* <Link
 							to="/"
 							className="text-2xl font-bold bg-gradient-hero bg-clip-text text-transparent hover-scale transition-smooth"
 						>
 							KD
+						</Link> */}
+						<Link
+							to="/"
+							className="text-2xl font-bold bg-gradient-hero bg-clip-text text-transparent hover-scale transition-smooth"
+						>
+							<img
+								src="/logo.png"
+								alt="Logo"
+								width={120}
+								// height={80}
+								className="rounded-full"
+							/>
 						</Link>
+
 					</div>
 
 					{/* Desktop Navigation */}
