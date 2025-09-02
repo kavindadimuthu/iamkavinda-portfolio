@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { useCreateBlog, useUpdateBlog, useBlog } from '@/hooks/use-blogs'
+import { useCreateBlog, useUpdateBlog, useBlogById } from '@/hooks/use-blogs'
 import { useImageUpload } from '@/hooks/use-image-upload'
 import { AdminLayout } from '@/components/admin/admin-layout'
 import { Button } from '@/components/ui/button'
@@ -21,7 +21,7 @@ export default function BlogEditor() {
   const navigate = useNavigate()
   const isEditing = Boolean(id && id !== 'new')
   
-  const { data: existingBlog, isLoading } = useBlog(isEditing ? '' : '')
+  const { data: existingBlog, isLoading } = useBlogById(id || '')
   const { mutate: createBlog, isPending: isCreating } = useCreateBlog()
   const { mutate: updateBlog, isPending: isUpdating } = useUpdateBlog()
   const { mutate: uploadImage, isPending: isUploading } = useImageUpload()
@@ -41,11 +41,17 @@ export default function BlogEditor() {
 
   // Load existing blog data when editing
   useEffect(() => {
-    if (isEditing && id && id !== 'new') {
-      // In real implementation, you'd fetch the blog by ID
-      // For now, we'll use a placeholder since we need to implement getBlogById
+    if (existingBlog && isEditing) {
+      setFormData({
+        title: existingBlog.title,
+        excerpt: existingBlog.excerpt || '',
+        content: existingBlog.content,
+        cover_image_url: existingBlog.cover_image_url || '',
+        status: existingBlog.status,
+        tags: existingBlog.tags?.map(tag => tag.name) || []
+      })
     }
-  }, [id, isEditing])
+  }, [existingBlog, isEditing])
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({

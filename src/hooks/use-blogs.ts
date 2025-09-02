@@ -202,6 +202,47 @@ export function useBlog(slug: string) {
   })
 }
 
+// Get single blog by ID
+export function useBlogById(id: string) {
+  return useQuery({
+    queryKey: ['blog-by-id', id],
+    queryFn: async () => {
+      if (!id || id === 'new') return null
+      
+      const { data, error } = await supabase
+        .from('blogs')
+        .select('id, title, slug, excerpt, content, author_id, status, published_at, created_at, updated_at, cover_image_url')
+        .eq('id', id)
+        .maybeSingle()
+
+      if (error) throw error
+      if (!data) return null
+
+      // Get author
+      const { data: author } = await supabase
+        .from('authors')
+        .select('id, name, email, bio')
+        .eq('id', data.author_id)
+        .maybeSingle()
+
+      // Get tags
+      const { data: blogTags } = await supabase
+        .from('blog_tags')
+        .select('tag_id, tags!inner(id, name, slug)')
+        .eq('blog_id', data.id)
+
+      const tags = blogTags?.map((bt: any) => bt.tags).filter(Boolean) || []
+
+      return {
+        ...data,
+        author,
+        tags
+      } as Blog
+    },
+    enabled: !!id && id !== 'new'
+  })
+}
+
 // Get all tags
 export function useTags() {
   return useQuery({
