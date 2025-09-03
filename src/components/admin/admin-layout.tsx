@@ -31,7 +31,13 @@ function SidebarContent() {
       <div className="border-b p-6">
         <Link to="/" className="flex items-center gap-2 font-semibold">
           <Home className="h-6 w-6" />
-          <span>Kavinda Dewmith</span>
+          {/* <span>Kavinda Dewmith</span> */}
+          <img 
+            src="logo-text-black.png" 
+            alt="Kavinda Dewmith" 
+            width={100}
+            className='h-auto ml-4'
+          />
         </Link>
       </div>
       
