@@ -17,6 +17,7 @@ import {
 import { motion } from "framer-motion"
 import { useToast } from "@/hooks/use-toast"
 import { useMotionAnimation, animationVariants, transitions } from "@/hooks/use-motion-animations"
+import { sendContactEmail, ContactFormData } from "@/services/email"
 
 const contactInfo = [
   {
@@ -66,7 +67,7 @@ const socialLinks = [
 ]
 
 export function ContactSection() {
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<ContactFormData>({
     name: "",
     email: "",
     subject: "",
@@ -90,15 +91,31 @@ export function ContactSection() {
     e.preventDefault()
     setIsSubmitting(true)
 
-    // Simulate form submission
-    setTimeout(() => {
+    try {
+      const result = await sendContactEmail(formData)
+      
+      if (result.success) {
+        toast({
+          title: "Message sent successfully!",
+          description: "Thank you for reaching out. I'll get back to you soon.",
+        })
+        setFormData({ name: "", email: "", subject: "", message: "" })
+      } else {
+        toast({
+          title: "Failed to send message",
+          description: "Please try again or contact me directly at kavindadewmith@gmail.com",
+          variant: "destructive"
+        })
+      }
+    } catch (error) {
       toast({
-        title: "Message sent successfully!",
-        description: "Thank you for reaching out. I'll get back to you soon.",
+        title: "An error occurred",
+        description: "Please try again or contact me directly.",
+        variant: "destructive"
       })
-      setFormData({ name: "", email: "", subject: "", message: "" })
+    } finally {
       setIsSubmitting(false)
-    }, 1000)
+    }
   }
 
   return (
@@ -222,6 +239,7 @@ export function ContactSection() {
                         onChange={handleChange}
                         placeholder="Your full name"
                         className="border-2 focus:border-tech-blue transition-smooth"
+                        disabled={isSubmitting}
                       />
                     </div>
                     
@@ -238,6 +256,7 @@ export function ContactSection() {
                         onChange={handleChange}
                         placeholder="your.email@example.com"
                         className="border-2 focus:border-tech-blue transition-smooth"
+                        disabled={isSubmitting}
                       />
                     </div>
                   </div>
@@ -255,6 +274,7 @@ export function ContactSection() {
                       onChange={handleChange}
                       placeholder="What's this about?"
                       className="border-2 focus:border-tech-blue transition-smooth"
+                      disabled={isSubmitting}
                     />
                   </div>
 
@@ -270,6 +290,7 @@ export function ContactSection() {
                       onChange={handleChange}
                       placeholder="Tell me about your project or inquiry..."
                       className="border-2 focus:border-tech-blue transition-smooth resize-none flex-1 min-h-[120px]"
+                      disabled={isSubmitting}
                     />
                   </div>
 
