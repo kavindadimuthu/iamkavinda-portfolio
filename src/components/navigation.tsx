@@ -23,6 +23,9 @@ export function Navigation() {
 	// Check if we're on the home page to enable smooth scrolling
 	const isHomePage = location.pathname === "/"
 
+	// Get current theme from document
+	const isDarkMode = document.documentElement.classList.contains('dark')
+
 	useEffect(() => {
 		setMounted(true)
 
@@ -56,10 +59,26 @@ export function Navigation() {
 		}
 	}
 
+	// Determine which logo to use based on scroll state, page, and theme
+	const getLogoSrc = () => {
+		// If dark mode is enabled, always use white logo
+		if (isDarkMode) {
+			return "/logo.png"
+		}
+		
+		// Light mode logic:
+		// On home page: use white logo when not scrolled, black logo when scrolled
+		if (isHomePage) {
+			return scrolled ? "/logo-text-black.png" : "/logo.png"
+		}
+		// On other pages: always use black logo (since background is always light)
+		return "/logo-text-black.png"
+	}
+
 	return (
 		<motion.nav
 			className={`fixed top-0 left-0 right-0 z-50 transition-smooth ${
-				scrolled
+				scrolled || !isHomePage
 					? "bg-background/80 backdrop-blur-xl border-b shadow-card"
 					: "bg-transparent"
 			}`}
@@ -75,25 +94,17 @@ export function Navigation() {
 				<div className="flex items-center justify-between h-16">
 					{/* Logo */}
 					<div className="flex-shrink-0">
-						{/* <Link
-							to="/"
-							className="text-2xl font-bold bg-gradient-hero bg-clip-text text-transparent hover-scale transition-smooth"
-						>
-							KD
-						</Link> */}
 						<Link
 							to="/"
 							className="text-2xl font-bold bg-gradient-hero bg-clip-text text-transparent hover-scale transition-smooth"
 						>
 							<img
-								src="/logo.png"
-								alt="Logo"
+								src={getLogoSrc()}
+								alt="Kavinda Dewmith Logo"
 								width={120}
-								// height={80}
-								className="rounded-full"
+								className="rounded-full transition-all duration-300 ease-in-out"
 							/>
 						</Link>
-
 					</div>
 
 					{/* Desktop Navigation */}
@@ -105,7 +116,7 @@ export function Navigation() {
 										key={item.name}
 										to={item.href}
 										className={`transition-smooth relative after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-gradient-hero after:transition-all after:duration-300 hover:after:w-full ${
-											scrolled
+											scrolled || !isHomePage
 												? "text-foreground hover:text-primary"
 												: "text-white hover:text-white/80"
 										} ${
@@ -121,7 +132,7 @@ export function Navigation() {
 										key={item.name}
 										onClick={() => handleNavClick(item)}
 										className={`transition-smooth relative after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-gradient-hero after:transition-all after:duration-300 hover:after:w-full ${
-											scrolled
+											scrolled || !isHomePage
 												? "text-foreground hover:text-primary"
 												: "text-white hover:text-white/80"
 										}`}
