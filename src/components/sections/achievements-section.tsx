@@ -42,19 +42,19 @@ const achievements = [
 		bgColor: "bg-orange-500/10",
 		borderColor: "border-orange-500/20",
 	},
-	{
-		title: "Open Source Contributor",
-		subtitle: "Community Impact",
-		description:
-			"Active contributions to open-source projects, helping improve accessibility and user experience in web applications.",
-		icon: Award,
-		category: "Community",
-		year: "Ongoing",
-		impact: "Global Reach",
-		color: "text-green-500",
-		bgColor: "bg-green-500/10",
-		borderColor: "border-green-500/20",
-	},
+	// {
+	// 	title: "Open Source Contributor",
+	// 	subtitle: "Community Impact",
+	// 	description:
+	// 		"Active contributions to open-source projects, helping improve accessibility and user experience in web applications.",
+	// 	icon: Award,
+	// 	category: "Community",
+	// 	year: "Ongoing",
+	// 	impact: "Global Reach",
+	// 	color: "text-green-500",
+	// 	bgColor: "bg-green-500/10",
+	// 	borderColor: "border-green-500/20",
+	// },
 	{
 		title: "Project Leadership",
 		subtitle: "Team Management",
