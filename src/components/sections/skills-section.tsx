@@ -38,7 +38,7 @@ const skillCategories = [
       { name: "Spring Boot", level: 80 },
       { name: "PHP", level: 75 },
       { name: "RESTful APIs", level: 90 },
-      { name: "GraphQL", level: 70 },
+      // { name: "GraphQL", level: 70 },
     ]
   },
   {
@@ -51,7 +51,7 @@ const skillCategories = [
       { name: "MySQL", level: 82 },
       { name: "Supabase", level: 90 },
       { name: "Firebase", level: 80 },
-      { name: "Redis", level: 65 },
+      // { name: "Redis", level: 65 },
     ]
   },
   {
@@ -64,7 +64,7 @@ const skillCategories = [
       { name: "CI/CD", level: 70 },
       { name: "Git", level: 95 },
       { name: "Linux", level: 78 },
-      { name: "Nginx", level: 70 },
+      // { name: "Nginx", level: 70 },
     ]
   },
   {
@@ -76,8 +76,8 @@ const skillCategories = [
       { name: "IntelliJ IDEA", level: 85 },
       { name: "Postman", level: 90 },
       { name: "Figma", level: 80 },
-      { name: "Jest", level: 75 },
-      { name: "Webpack", level: 70 },
+      // { name: "Jest", level: 75 },
+      // { name: "Webpack", level: 70 },
     ]
   },
   {
@@ -190,10 +190,10 @@ export function SkillsSection() {
                 ease: [0.25, 0.46, 0.45, 0.94],
                 delay: index * 0.15
               }}
+              className="h-full"
             >
-              <Card className="hover-lift transition-smooth shadow-card border-2 bg-gradient-card">
-                {/* ... keep existing code (card content) */}
-                <CardHeader className="pb-4">
+              <Card className="hover-lift transition-smooth shadow-card border-2 bg-gradient-card h-full flex flex-col">
+                <CardHeader className="pb-4 flex-shrink-0">
                   <CardTitle className="flex items-center gap-3 text-lg">
                     <div className="p-2 bg-gradient-hero rounded-lg">
                       <category.icon className="h-5 w-5 text-white" />
@@ -201,8 +201,8 @@ export function SkillsSection() {
                     {category.title}
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="pt-0">
-                  <div className="space-y-4">
+                <CardContent className="pt-0 flex-grow flex flex-col">
+                  <div className="space-y-4 flex-grow">
                     {category.skills.map((skill) => (
                       <div key={skill.name} className="space-y-2">
                         <div className="flex justify-between items-center">
@@ -268,18 +268,21 @@ export function SkillsSection() {
                   ease: [0.25, 0.46, 0.45, 0.94],
                   delay: index * 0.1
                 }}
+                className="h-full"
               >
-                <Card className="text-center hover-lift transition-smooth shadow-card border-2 bg-gradient-card">
-                  <CardContent className="p-6">
-                    <div className="mb-4">
+                <Card className="text-center hover-lift transition-smooth shadow-card border-2 bg-gradient-card h-full">
+                  <CardContent className="p-6 h-full flex flex-col">
+                    <div className="mb-4 flex-shrink-0">
                       <div className="w-16 h-16 mx-auto bg-gradient-hero rounded-full flex items-center justify-center shadow-glow">
                         <skill.icon className="h-8 w-8 text-white" />
                       </div>
                     </div>
-                    <h4 className="font-bold text-lg mb-3">{skill.title}</h4>
-                    <p className="text-sm text-muted-foreground leading-relaxed">
-                      {skill.description}
-                    </p>
+                    <div className="flex-grow flex flex-col justify-center">
+                      <h4 className="font-bold text-lg mb-3">{skill.title}</h4>
+                      <p className="text-sm text-muted-foreground leading-relaxed">
+                        {skill.description}
+                      </p>
+                    </div>
                   </CardContent>
                 </Card>
               </motion.div>
